@@ -42,7 +42,7 @@
     
     .card-back::before {
       content: '?';
-      font-size: 2.5rem;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
       color: rgba(255,255,255,0.3);
       font-weight: 800;
     }
@@ -50,7 +50,7 @@
     .card-front {
       background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
       transform: rotateY(180deg);
-      font-size: 2.5rem;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
       box-shadow: 0 4px 15px rgba(252, 182, 159, 0.4);
     }
     
@@ -85,6 +85,30 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
+
+    @keyframes trophy-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .trophy-bounce {
+      animation: trophy-bounce 0.6s ease-in-out;
+    }
+
+    @keyframes new-record-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+
+    .new-record-glow {
+      animation: new-record-glow 1.5s ease-in-out infinite;
+    }
+
+    .game-board-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
   </style>
   <style>body { box-sizing: border-box; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
@@ -96,59 +120,89 @@
      <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-lg">🧠 메모리 게임</h1>
      <p class="text-purple-300 text-lg">난이도를 선택하세요!</p>
     </div>
-    <div class="flex flex-col gap-4 w-full max-w-sm"><button onclick="startGame('easy')" class="group bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">😊 쉬움</span> <span class="text-sm font-normal opacity-90">16장 (4×4)</span> </button> <button onclick="startGame('normal')" class="group bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">🎮 보통</span> <span class="text-sm font-normal opacity-90">20장 (4×5)</span> </button> <button onclick="startGame('hard')" class="group bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">🔥 어려움</span> <span class="text-sm font-normal opacity-90">30장 (5×6)</span> </button>
+    <div class="flex flex-col gap-4 w-full max-w-sm"><button onclick="startGame('easy')" class="group bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">😊 쉬움</span> <span class="text-sm font-normal opacity-90">16장 (4×4)</span> <span id="easy-record" class="text-xs font-normal opacity-75 mt-1"></span> </button> <button onclick="startGame('normal')" class="group bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">🎮 보통</span> <span class="text-sm font-normal opacity-90">20장 (4×5)</span> <span id="normal-record" class="text-xs font-normal opacity-75 mt-1"></span> </button> <button onclick="startGame('hard')" class="group bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">🔥 어려움</span> <span class="text-sm font-normal opacity-90">30장 (5×6)</span> <span id="hard-record" class="text-xs font-normal opacity-75 mt-1"></span> </button> <button onclick="startGame('veryhard')" class="group bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"> <span class="block mb-1">⚡ 베리 하드</span> <span class="text-sm font-normal opacity-90">40장 (8×5)</span> <span id="veryhard-record" class="text-xs font-normal opacity-75 mt-1"></span> </button>
     </div>
    </div><!-- Game Screen -->
-   <div id="game-screen" class="hidden h-full flex flex-col items-center justify-start p-4 md:p-6 overflow-y-auto"><!-- Header -->
-    <div class="text-center mb-4 w-full">
-     <h1 id="game-title" class="text-3xl md:text-4xl font-extrabold text-white mb-1 drop-shadow-lg">🧠 메모리 게임</h1>
+   <div id="game-screen" class="hidden h-full flex flex-col items-center justify-between p-4 md:p-6"><!-- Header -->
+    <div class="text-center w-full flex-shrink-0">
+     <h1 id="game-title" class="text-2xl md:text-3xl font-extrabold text-white mb-1 drop-shadow-lg">🧠 메모리 게임</h1>
      <p id="difficulty-text" class="text-purple-300 text-sm mb-3">난이도</p>
     </div><!-- Stats -->
-    <div id="stats-container" class="flex gap-4 mb-6 w-full justify-center flex-wrap">
-     <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
-      <div class="text-xl md:text-2xl font-bold text-yellow-400" id="moves">
+    <div id="stats-container" class="flex gap-3 md:gap-4 w-full justify-center flex-wrap flex-shrink-0">
+     <div class="bg-white/10 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 text-center">
+      <div class="text-lg md:text-xl font-bold text-yellow-400" id="moves">
        0
       </div>
       <div class="text-xs text-purple-200">
        시도 횟수
       </div>
      </div>
-     <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
-      <div class="text-xl md:text-2xl font-bold text-green-400" id="matches">
+     <div class="bg-white/10 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 text-center">
+      <div class="text-lg md:text-xl font-bold text-green-400" id="matches">
        0
       </div>
       <div class="text-xs text-purple-200">
        매칭 성공
       </div>
      </div>
-     <div id="timer-container" class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
-      <div id="timer" class="text-xl md:text-2xl font-bold text-cyan-400">
+     <div id="timer-container" class="bg-white/10 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 text-center">
+      <div id="timer" class="text-lg md:text-xl font-bold text-cyan-400">
        3:00
       </div>
       <div class="text-xs text-purple-200">
        남은 시간
       </div>
      </div>
-    </div><!-- Game Board -->
-    <div id="game-board" class="gap-3 max-w-full mx-auto mb-6 flex justify-center flex-wrap"><!-- Cards will be generated here -->
+    </div><!-- Game Board Wrapper -->
+    <div class="game-board-wrapper flex-grow flex items-start justify-center w-full overflow-auto pt-4">
+     <div id="game-board" class="gap-2 md:gap-3 flex flex-wrap justify-center"><!-- Cards will be generated here -->
+     </div>
     </div><!-- Buttons -->
-    <div class="flex gap-4 justify-center mt-4"><button id="restart-btn" onclick="restartGame()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"> 🔄 다시 시작 </button> <button onclick="goToMenu()" class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"> 🏠 메뉴 </button>
+    <div class="flex gap-4 justify-center mt-4 flex-shrink-0"><button id="restart-btn" onclick="restartGame()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"> 🔄 다시 시작 </button> <button onclick="goToMenu()" class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"> 🏠 메뉴 </button>
     </div>
    </div><!-- Game Over Modal -->
-   <div id="game-over-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-    <div id="modal-content" class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
-     <div id="modal-icon" class="text-6xl mb-4">
+   <div id="game-over-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div id="modal-content" class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-6 md:p-8 text-center shadow-2xl max-w-sm w-full">
+     <div id="modal-icon" class="text-5xl md:text-6xl mb-4">
       😢
      </div>
-     <h2 id="modal-title" class="text-3xl font-extrabold text-white mb-2">시간 초과!</h2>
+     <h2 id="modal-title" class="text-2xl md:text-3xl font-extrabold text-white mb-2">시간 초과!</h2>
      <p id="modal-desc" class="text-purple-100 mb-4">아쉬워요. 다시 도전해 보세요!</p>
      <div class="bg-white/20 rounded-xl p-4 mb-6">
       <div class="text-white"><span class="block text-sm opacity-80">시도 횟수</span> <span id="final-moves" class="text-2xl font-bold">0</span>
       </div>
-      <div class="text-white mt-2"><span class="block text-sm opacity-80">매칭 성공</span> <span id="final-matches" class="text-2xl font-bold">0</span>
+      <div class="text-white mt-3"><span class="block text-sm opacity-80">매칭 성공</span> <span id="final-matches" class="text-2xl font-bold">0</span>
       </div>
      </div>
-     <div class="flex gap-3 justify-center"><button onclick="closeModal(); restartGame();" class="bg-white text-purple-600 font-bold py-3 px-6 rounded-full hover:bg-purple-100 transition-all duration-300 flex-1"> 다시 도전! 🚀 </button> <button onclick="closeModal(); goToMenu();" class="bg-purple-800 text-white font-bold py-3 px-6 rounded-full hover:bg-purple-900 transition-all duration-300 flex-1"> 메뉴 </button>
+     <div class="flex gap-3 justify-center flex-col md:flex-row"><button onclick="closeModal(); restartGame();" class="bg-white text-purple-600 font-bold py-3 px-6 rounded-full hover:bg-purple-100 transition-all duration-300 flex-1"> 다시 도전! 🚀 </button> <button onclick="closeModal(); goToMenu();" class="bg-purple-800 text-white font-bold py-3 px-6 rounded-full hover:bg-purple-900 transition-all duration-300 flex-1"> 메뉴 </button>
+     </div>
+    </div>
+   </div><!-- Win Modal -->
+   <div id="win-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div id="win-modal-content" class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-6 md:p-8 text-center shadow-2xl max-w-sm w-full">
+     <div id="trophy-icon" class="text-5xl md:text-6xl mb-4 trophy-bounce">
+      🎉
+     </div>
+     <h2 id="win-title" class="text-2xl md:text-3xl font-extrabold text-white mb-2">축하해요!</h2>
+     <p id="win-desc" class="text-purple-100 mb-4">모든 카드를 찾았어요!</p><!-- New Record Badge -->
+     <div id="new-record-badge" class="hidden mb-4">
+      <div class="bg-gradient-to-r from-yellow-300 to-yellow-100 text-yellow-900 rounded-full px-4 py-2 font-bold text-lg inline-block new-record-glow">
+       🏆 NEW RECORD! 🏆
+      </div>
+     </div>
+     <div class="bg-white/20 rounded-xl p-4 mb-6">
+      <div class="grid grid-cols-2 gap-4">
+       <div class="text-white"><span class="block text-sm opacity-80">시도 횟수</span> <span id="win-final-moves" class="text-2xl font-bold">0</span>
+       </div>
+       <div class="text-white"><span class="block text-sm opacity-80">매칭 성공</span> <span id="win-final-matches" class="text-2xl font-bold">0</span>
+       </div>
+       <div class="text-white col-span-2 pt-2 border-t border-white/30"><span class="block text-sm opacity-80 mb-1">⏱️ 내 기록 (점수)</span> <span id="my-score" class="text-2xl font-bold text-yellow-300">0초</span>
+       </div>
+       <div class="text-white col-span-2"><span class="block text-sm opacity-80 mb-1">⭐ 최고기록</span> <span id="best-score" class="text-2xl font-bold text-cyan-300">0초</span>
+       </div>
+      </div>
+     </div>
+     <div class="flex gap-3 justify-center flex-col md:flex-row"><button onclick="closeWinModal(); restartGame();" class="bg-white text-purple-600 font-bold py-3 px-6 rounded-full hover:bg-purple-100 transition-all duration-300 flex-1"> 다시 도전! 🚀 </button> <button onclick="closeWinModal(); goToMenu();" class="bg-purple-800 text-white font-bold py-3 px-6 rounded-full hover:bg-purple-900 transition-all duration-300 flex-1"> 메뉴 </button>
      </div>
     </div>
    </div>
@@ -166,31 +220,42 @@
     let currentDifficulty = null;
     let timeLimit = 180;
 
-    // Card emojis - 15 pairs
-    const allEmojis = ['🦊', '🐼', '🦁', '🐸', '🦋', '🌸', '⭐', '🌈', '🍎', '🎈', '🎸', '🎮', '🚀', '🏰', '⚽'];
+    // Card emojis - 20 pairs for very hard
+    const allEmojis = ['🦊', '🐼', '🦁', '🐸', '🦋', '🌸', '⭐', '🌈', '🍎', '🎈', '🎸', '🎮', '🚀', '🏰', '⚽', '🐨', '🦒', '🦓', '🐷', '🦊'];
 
-    // Difficulty settings
+    // Difficulty settings with fixed card sizes
     const difficultySettings = {
       easy: {
         pairs: 8,
         cols: 4,
         rows: 4,
         timeLimit: 180,
-        text: '😊 쉬움'
+        text: '😊 쉬움',
+        cardSize: 100
       },
       normal: {
         pairs: 10,
         cols: 5,
         rows: 4,
         timeLimit: 180,
-        text: '🎮 보통'
+        text: '🎮 보통',
+        cardSize: 85
       },
       hard: {
         pairs: 15,
         cols: 6,
         rows: 5,
         timeLimit: 180,
-        text: '🔥 어려움'
+        text: '🔥 어려움',
+        cardSize: 70
+      },
+      veryhard: {
+        pairs: 20,
+        cols: 8,
+        rows: 5,
+        timeLimit: 180,
+        text: '⚡ 베리 하드',
+        cardSize: 55
       }
     };
 
@@ -199,6 +264,55 @@
       game_title: '🧠 메모리 게임',
       time_limit: '180'
     };
+
+    // Sound effect function
+    function playMatchSound() {
+      // Create a simple beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    }
+
+    // Record storage
+    function saveRecord(difficulty, timeScore) {
+      const records = JSON.parse(localStorage.getItem('memoryGameRecords') || '{}');
+      if (!records[difficulty] || timeScore < records[difficulty]) {
+        records[difficulty] = timeScore;
+        localStorage.setItem('memoryGameRecords', JSON.stringify(records));
+        return true; // New record
+      }
+      return false;
+    }
+
+    function getRecord(difficulty) {
+      const records = JSON.parse(localStorage.getItem('memoryGameRecords') || '{}');
+      return records[difficulty] || null;
+    }
+
+    function formatTimeScore(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateRecordDisplay() {
+      document.getElementById('easy-record').textContent = getRecord('easy') ? `최고기록: ${formatTimeScore(getRecord('easy'))}` : '아직 기록이 없어요';
+      document.getElementById('normal-record').textContent = getRecord('normal') ? `최고기록: ${formatTimeScore(getRecord('normal'))}` : '아직 기록이 없어요';
+      document.getElementById('hard-record').textContent = getRecord('hard') ? `최고기록: ${formatTimeScore(getRecord('hard'))}` : '아직 기록이 없어요';
+      document.getElementById('veryhard-record').textContent = getRecord('veryhard') ? `최고기록: ${formatTimeScore(getRecord('veryhard'))}` : '아직 기록이 없어요';
+    }
 
     // Initialize game
     function initGame() {
@@ -234,14 +348,14 @@
       const board = document.getElementById('game-board');
       const settings = difficultySettings[currentDifficulty];
       board.innerHTML = '';
-      board.style.width = 'auto';
-      board.style.maxWidth = '90vw';
-
+      
+      const cardSize = settings.cardSize;
+      
       cards.forEach((card, index) => {
         const cardElement = document.createElement('div');
         cardElement.className = 'card-container cursor-pointer';
-        cardElement.style.width = '80px';
-        cardElement.style.height = '80px';
+        cardElement.style.width = cardSize + 'px';
+        cardElement.style.height = cardSize + 'px';
         cardElement.innerHTML = `
           <div class="card w-full h-full ${card.isFlipped || card.isMatched ? 'flipped' : ''} ${card.isMatched ? 'matched' : ''}" data-index="${index}">
             <div class="card-face card-back"></div>
@@ -282,6 +396,7 @@
       
       if (cards[first].emoji === cards[second].emoji) {
         // Match found!
+        playMatchSound();
         cards[first].isMatched = true;
         cards[second].isMatched = true;
         matchedPairs++;
@@ -366,12 +481,28 @@
         clearInterval(timerInterval);
         timerInterval = null;
       }
-      document.getElementById('modal-icon').textContent = '🎉';
-      document.getElementById('modal-title').textContent = '축하해요!';
-      document.getElementById('modal-desc').textContent = '모든 카드를 찾았어요!';
-      document.getElementById('final-moves').textContent = moves;
-      document.getElementById('final-matches').textContent = matchedPairs;
-      document.getElementById('game-over-modal').classList.remove('hidden');
+
+      const timeScore = seconds;
+      const isNewRecord = saveRecord(currentDifficulty, timeScore);
+      const bestRecord = getRecord(currentDifficulty);
+
+      document.getElementById('trophy-icon').textContent = '🎉';
+      document.getElementById('win-title').textContent = '축하해요!';
+      document.getElementById('win-desc').textContent = '모든 카드를 찾았어요!';
+      document.getElementById('win-final-moves').textContent = moves;
+      document.getElementById('win-final-matches').textContent = matchedPairs;
+      document.getElementById('my-score').textContent = formatTimeScore(timeScore);
+      document.getElementById('best-score').textContent = formatTimeScore(bestRecord);
+
+      if (isNewRecord) {
+        document.getElementById('new-record-badge').classList.remove('hidden');
+        document.getElementById('trophy-icon').textContent = '🏆';
+      } else {
+        document.getElementById('new-record-badge').classList.add('hidden');
+      }
+
+      document.getElementById('win-modal').classList.remove('hidden');
+      updateRecordDisplay();
     }
 
     function showGameOverModal() {
@@ -385,6 +516,10 @@
 
     function closeModal() {
       document.getElementById('game-over-modal').classList.add('hidden');
+    }
+
+    function closeWinModal() {
+      document.getElementById('win-modal').classList.add('hidden');
     }
 
     function startGame(difficulty) {
@@ -404,6 +539,7 @@
 
     function restartGame() {
       closeModal();
+      closeWinModal();
       initGame();
     }
 
@@ -415,6 +551,8 @@
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('main-menu').classList.remove('hidden');
       closeModal();
+      closeWinModal();
+      updateRecordDisplay();
     }
 
     // Config change handler
@@ -441,6 +579,9 @@
       });
     }
 
+    // Initialize record display on page load
+    updateRecordDisplay();
+
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cd43261a19b32a2',t:'MTc3MDk4NDM1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cdd40be96bac44e',t:'MTc3MTA3OTMxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
