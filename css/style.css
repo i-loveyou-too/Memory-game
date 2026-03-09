@@ -45,7 +45,7 @@ body {
 .timer-bar-track { width:160px; height:6px; background: rgba(255,255,255,0.15); border-radius:999px; overflow:hidden; margin-top:6px; }
 #timer-bar { height:100%; background:#06b6d4; width:100%; transition:width 0.4s ease, background 0.2s ease; }
 
-#game-screen { height: 100vh; justify-content: flex-start; gap: 8px; padding: 10px 12px; }
+#game-screen { height: 100vh; justify-content: flex-start; gap: 6px; padding: 6px 10px 8px; }
 .game-board-wrapper {
   flex: 1;
   min-height: 0;
@@ -55,17 +55,17 @@ body {
   width:100%;
   height: auto;
   overflow:hidden;
-  padding: 4px 0;
+  padding: 0;
 }
-#game-board {
+.card-grid {
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 10px;
-  width: min(90vw, 1100px);
-  height: min(80vh, calc(100vh - 220px));
+  gap: 5px;
+  width: 90vw;
+  max-width: 700px;
+  height: auto;
   margin: 0 auto;
-  align-content: stretch;
-  justify-content: stretch;
+  align-content: start;
+  justify-content: center;
 }
 .game-board-wrapper.scrollable { overflow:auto; }
 .game-board-wrapper.scrollable { -webkit-overflow-scrolling: touch; }
@@ -104,5 +104,5 @@ body {
 
 @media (max-width:900px) {
   #game-screen { padding: 8px; }
-  #game-board { width: 94vw; height: min(82vh, calc(100vh - 210px)); }
+  .card-grid { width: 94vw; }
 }

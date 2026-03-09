@@ -4,10 +4,11 @@ function renderBoard(){
   const board = document.getElementById('game-board');
   if(!board || !MG.currentDifficulty) return;
   const settings = MG.difficultySettings[MG.currentDifficulty];
-  const cols = settings.cols; const rows = settings.rows;
-  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  const gap = window.innerWidth >= 768 ? 10 : 6; board.style.gap = gap + 'px';
+  if(settings){
+    board.style.gridTemplateColumns = `repeat(${settings.cols}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${settings.rows}, 1fr)`;
+  }
+  board.style.gap = '5px';
   board.innerHTML = '';
 
   (MG.cards || []).forEach((card, index) => {

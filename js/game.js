@@ -6,12 +6,12 @@
     gameState:'preview', combo:0, maxCombo:0, score:0,
     selectedTheme: window.getSelectedTheme ? window.getSelectedTheme() : 'animals',
     difficultySettings: {
-      easy:{ pairs:8, cols:4, rows:4, timeLimit:180, text:'😊 쉬움' },
-      normal:{ pairs:10, cols:4, rows:5, timeLimit:180, text:'🎮 보통' },
-      hard:{ pairs:15, cols:5, rows:6, timeLimit:180, text:'🔥 어려움' },
-      veryhard:{ pairs:20, cols:5, rows:8, timeLimit:180, text:'⚡ 베리 하드' }
+      easy:{ pairs:8, cols:4, rows:4, timeLimit:180, text:'Easy' },
+      normal:{ pairs:10, cols:5, rows:4, timeLimit:180, text:'Medium' },
+      hard:{ pairs:15, cols:6, rows:5, timeLimit:180, text:'Hard' },
+      veryhard:{ pairs:20, cols:8, rows:5, timeLimit:180, text:'Very Hard' }
     },
-    defaultConfig: { game_title: '🧠 메모리 게임', time_limit: 180 }
+    defaultConfig: { game_title: 'Memory Game', time_limit: 180 }
   };
   window.MemoryGame = MemoryGame;
 
@@ -32,8 +32,20 @@
     if(window.renderBoard) window.renderBoard();
   }
 
-  function startCountdown(){
-    const overlay = document.getElementById('countdown-overlay');
+  function revealAllCards(){
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(function(card){ card.classList.add('flipped'); });
+    setTimeout(function(){
+      cards.forEach(function(card){ card.classList.remove('flipped'); });
+      MemoryGame.gameStarted = true;
+      MemoryGame.gameState = 'playing';
+      if(window.startTimer) window.startTimer();
+      if(window.updateStats) window.updateStats();
+    }, 2000);
+  }
+
+  function startCountdown(callback){
+    const overlay = document.getElementById('countdown') || document.getElementById('countdown-overlay');
     if(!overlay) return;
 
     if(MemoryGame.timerInterval){
@@ -68,10 +80,7 @@
         overlay.style.display = 'none';
         overlay.classList.add('hidden');
         overlay.classList.remove('go');
-        MemoryGame.gameStarted = true;
-        MemoryGame.gameState = 'playing';
-        if(window.startTimer) window.startTimer();
-        if(window.updateStats) window.updateStats();
+        if(typeof callback === 'function') callback();
       }
     }, 1000);
   }
@@ -91,9 +100,17 @@
     }
     initGame();
     MemoryGame.score = 0;
+    MemoryGame.moves = 0;
+    MemoryGame.gameStarted = false;
     if(window.updateScore) window.updateScore();
-    requestAnimationFrame(()=>{ if(window.renderBoard) window.renderBoard(); });
-    setTimeout(()=>{ if(MemoryGame.currentDifficulty){ if(window.renderBoard) window.renderBoard(); startCountdown(); } }, 60);
+    if(window.updateStats) window.updateStats();
+    requestAnimationFrame(function(){ if(window.renderBoard) window.renderBoard(); });
+    setTimeout(function(){
+      if(MemoryGame.currentDifficulty){
+        if(window.renderBoard) window.renderBoard();
+        startCountdown(function(){ revealAllCards(); });
+      }
+    }, 60);
   }
 
   function updateScore(){
@@ -137,21 +154,26 @@
     const comboEl = document.getElementById('win-final-combo'); if(comboEl) comboEl.textContent = 'x' + MemoryGame.maxCombo;
     const movesEl = document.getElementById('win-final-moves'); if(movesEl) movesEl.textContent = MemoryGame.moves;
     const timeEl = document.getElementById('win-final-time'); if(timeEl) timeEl.textContent = (window.formatTime ? window.formatTime(MemoryGame.seconds) : (MemoryGame.seconds + 's'));
-    const diffEl = document.getElementById('win-final-difficulty'); if(diffEl) diffEl.textContent = '난이도: ' + (MemoryGame.difficultySettings[MemoryGame.currentDifficulty] ? MemoryGame.difficultySettings[MemoryGame.currentDifficulty].text : MemoryGame.currentDifficulty);
-    const themeEl = document.getElementById('win-final-theme'); if(themeEl) themeEl.textContent = '테마: ' + (MemoryGame.selectedTheme || '-');
+    const diffEl = document.getElementById('win-final-difficulty'); if(diffEl) diffEl.textContent = 'Difficulty: ' + (MemoryGame.difficultySettings[MemoryGame.currentDifficulty] ? MemoryGame.difficultySettings[MemoryGame.currentDifficulty].text : MemoryGame.currentDifficulty);
+    const themeEl = document.getElementById('win-final-theme'); if(themeEl) themeEl.textContent = 'Theme: ' + (MemoryGame.selectedTheme || '-');
     if(isNewRecord){ const badge = document.getElementById('new-record-badge'); if(badge) badge.classList.remove('hidden'); }
     triggerConfetti(); const winModal = document.getElementById('win-modal'); if(winModal) winModal.classList.remove('hidden'); if(window.updateRecordDisplay) window.updateRecordDisplay();
   }
 
-  function showGameOverModal(){ MemoryGame.gameState='finished'; document.getElementById('modal-title').textContent = '시간 초과!'; document.getElementById('final-moves').textContent = MemoryGame.moves; document.getElementById('game-over-modal').classList.remove('hidden'); }
+  function showGameOverModal(){ MemoryGame.gameState='finished'; document.getElementById('modal-title').textContent = 'Time Over!'; document.getElementById('final-moves').textContent = MemoryGame.moves; document.getElementById('game-over-modal').classList.remove('hidden'); }
 
   function restartGame(){
     document.getElementById('game-over-modal').classList.add('hidden');
     document.getElementById('win-modal').classList.add('hidden');
     initGame();
+    MemoryGame.score = 0;
+    MemoryGame.moves = 0;
+    MemoryGame.gameStarted = false;
+    if(window.updateScore) window.updateScore();
+    if(window.updateStats) window.updateStats();
     requestAnimationFrame(function(){
       if(window.renderBoard) window.renderBoard();
-      if(MemoryGame.currentDifficulty) startCountdown();
+      if(MemoryGame.currentDifficulty) startCountdown(function(){ revealAllCards(); });
     });
   }
   function goToMenu(){
@@ -172,7 +194,7 @@
   function closeWinModal(){ document.getElementById('win-modal').classList.add('hidden'); }
 
   // expose
-  window.startGame = startGame; window.restartGame = restartGame; window.goToMenu = goToMenu; window.closeModal = closeModal; window.closeWinModal = closeWinModal; window.showWinModal = showWinModal; window.showGameOverModal = showGameOverModal; window.playMatchSound = playMatchSound; window.triggerConfetti = triggerConfetti; window.updateStats = updateStats; window.updateScore = updateScore; window.startCountdown = startCountdown; window.initGame = initGame;
+  window.startGame = startGame; window.restartGame = restartGame; window.goToMenu = goToMenu; window.closeModal = closeModal; window.closeWinModal = closeWinModal; window.showWinModal = showWinModal; window.showGameOverModal = showGameOverModal; window.playMatchSound = playMatchSound; window.triggerConfetti = triggerConfetti; window.updateStats = updateStats; window.updateScore = updateScore; window.startCountdown = startCountdown; window.revealAllCards = revealAllCards; window.initGame = initGame;
 
   // UI bindings for elements previously using inline onclick attributes
   function bindUI(){
