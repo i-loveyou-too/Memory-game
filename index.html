@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>메모리 게임</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/animation.css">
+ </head>
+
+ <body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto app-bg">
+   <!-- Main Menu Screen -->
+   <div id="main-menu" class="h-full flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div class="text-center mb-8">
+     <h1 class="title">🧠 메모리 게임</h1>
+     <p class="subtitle">난이도를 선택하세요!</p>
+    </div>
+
+    <div class="menu-container w-full max-w-[900px] mx-auto mb-6">
+      <div class="theme-section">
+        <p class="theme-select-label">🎨 Theme Select</p>
+        <div class="theme-select-grid">
+          <button type="button" class="theme-btn theme-card-btn theme-card" data-theme="animals"><span class="theme-card-emoji">🐶</span><span class="theme-card-label">Animals</span></button>
+          <button type="button" class="theme-btn theme-card-btn theme-card" data-theme="fruits"><span class="theme-card-emoji">🍎</span><span class="theme-card-label">Fruits</span></button>
+          <button type="button" class="theme-btn theme-card-btn theme-card" data-theme="space"><span class="theme-card-emoji">🚀</span><span class="theme-card-label">Space</span></button>
+          <button type="button" class="theme-btn theme-card-btn theme-card" data-theme="ocean"><span class="theme-card-emoji">🐠</span><span class="theme-card-label">Ocean</span></button>
+        </div>
+      </div>
+
+      <div class="difficulty-section">
+        <p class="theme-select-label">🎯 Difficulty Select</p>
+        <div class="difficulty-controls">
+          <button data-difficulty="easy" class="difficulty-btn">😊 쉬움<br><span class="small">16장 (4×4)</span><div id="easy-record" class="record"></div></button>
+          <button data-difficulty="normal" class="difficulty-btn">🎮 보통<br><span class="small">20장 (4×5)</span><div id="normal-record" class="record"></div></button>
+          <button data-difficulty="hard" class="difficulty-btn">🔥 어려움<br><span class="small">30장 (5×6)</span><div id="hard-record" class="record"></div></button>
+          <button data-difficulty="veryhard" class="difficulty-btn">⚡ 베리 하드<br><span class="small">40장 (5×8)</span><div id="veryhard-record" class="record"></div></button>
+        </div>
+        <div style="margin-top:8px;">
+          <button id="ranking-btn" class="ranking-btn">🏆 Ranking</button>
+        </div>
+      </div>
+    </div>
+   </div>
+
+   <div id="countdown-overlay" class="hidden"></div>
+
+   <!-- Ranking Modal -->
+   <div id="ranking-modal" class="hidden modal">
+    <div class="modal-inner">
+     <h2>🏆 TOP</h2>
+    <div id="ranking-content"></div>
+    <button id="ranking-close-btn">닫기</button>
+    </div>
+   </div>
+
+   <!-- Game Screen -->
+   <div id="game-screen" class="hidden h-full flex flex-col items-center justify-between p-4 md:p-6">
+    <div class="text-center w-full flex-shrink-0">
+     <h1 id="game-title" class="game-title">🧠 메모리 게임</h1>
+     <p id="difficulty-text" class="difficulty-text">난이도</p>
+    </div>
+
+    <div id="stats-container" class="stats-container">
+     <div class="stat"><div id="moves" class="stat-value">0</div><div class="stat-label">시도 횟수</div></div>
+     <div class="stat"><div id="matches" class="stat-value">0</div><div class="stat-label">매칭 성공</div></div>
+     <div class="stat"><div id="score-display" class="stat-value">0</div><div class="stat-label">SCORE</div></div>
+     <div id="timer-container" class="stat timer-stat"><div id="timer" class="stat-value">3:00</div><div class="stat-label">남은 시간</div>
+      <div class="timer-bar-track"><div id="timer-bar"></div></div>
+     </div>
+    </div>
+
+    <div class="game-board-wrapper relative">
+     <div id="combo-container" class="combo-badge hidden" aria-hidden="true"></div>
+     <div id="floating-score-container"></div>
+     <div id="game-board" class="gap-2 md:gap-3"></div>
+    </div>
+
+    <div class="controls bottom-controls">
+      <button id="restart-btn">🔄 다시 시작</button>
+      <button id="menu-btn">🏠 메뉴</button>
+    </div>
+   </div>
+
+   <!-- Modals -->
+  <div id="game-over-modal" class="hidden modal"><div class="modal-inner"><h2 id="modal-title">시간 초과!</h2><div id="final-moves"></div><button id="gameover-close-btn">닫기</button></div></div>
+  <div id="win-modal" class="hidden modal">
+    <div class="modal-inner">
+      <h2 id="win-title">🏆 VICTORY</h2>
+      <div class="win-stats">
+        <div id="win-final-score" class="win-stat">점수: 0</div>
+        <div id="win-final-combo" class="win-stat">콤보: x0</div>
+        <div id="win-final-moves" class="win-stat">시도: 0</div>
+        <div id="win-final-time" class="win-stat">시간: 0:00</div>
+        <div id="win-final-difficulty" class="win-stat">난이도: -</div>
+        <div id="win-final-theme" class="win-stat">테마: -</div>
+        <div id="new-record-badge" class="win-stat hidden">🎉 NEW RECORD!</div>
+      </div>
+      <div class="modal-actions">
+        <button id="win-restart-btn" class="modal-button">🔄 다시 시작</button>
+        <button id="win-menu-btn" class="modal-button">🏠 메뉴로 이동</button>
+      </div>
+    </div>
+  </div>
+
+   <div id="confetti-container" class="hidden"></div>
+  </div>
+
+  <script src="data/themes.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/score.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="app/storage.js"></script>
+  <script src="app/ranking.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
