@@ -29,6 +29,7 @@ function flipCard(index){
   const MG = window.MemoryGame;
   if(!MG) return;
   if(typeof index !== 'number' || !MG.cards || !MG.cards[index]) return;
+  if(!MG.gameStarted) return;
   if(MG.gameState !== 'playing') return;
   if(MG.isLocked) return;
   if(MG.cards[index].isFlipped || MG.cards[index].isMatched) return;

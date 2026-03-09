@@ -21,6 +21,9 @@ function showFloatingScore(points){
 
 function calculateScore(){
   const MG = window.MemoryGame; if(!MG) return 0;
-  const settings = MG.difficultySettings[MG.currentDifficulty];
-  return Math.max(0, (settings.pairs * 1000) - (MG.moves * 30) - (MG.seconds * 5) + (MG.maxCombo * 200));
+  const matchedScore = MG.matchedPairs * 1000;
+  const movePenalty = MG.moves * 30;
+  const timePenalty = MG.seconds * 5;
+  const comboBonus = MG.maxCombo * 200;
+  return Math.max(0, matchedScore - movePenalty - timePenalty + comboBonus);
 }

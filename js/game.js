@@ -26,19 +26,54 @@
       const face = toCardFace(item);
       return { id:index, face, matchKey:getMatchKey(face), isFlipped:false, isMatched:false };
     });
-    MemoryGame.flippedCards = []; MemoryGame.matchedPairs=0; MemoryGame.moves=0; MemoryGame.seconds=0; MemoryGame.gameStarted=false; MemoryGame.isLocked=false; MemoryGame.gameState='preview'; MemoryGame.combo=0; MemoryGame.maxCombo=0; MemoryGame.score=0;
+    MemoryGame.flippedCards = []; MemoryGame.matchedPairs=0; MemoryGame.moves=0; MemoryGame.seconds=0; MemoryGame.gameStarted=false; MemoryGame.isLocked=false; MemoryGame.gameState='countdown'; MemoryGame.combo=0; MemoryGame.maxCombo=0; MemoryGame.score=0;
     if(MemoryGame.timerInterval){ clearInterval(MemoryGame.timerInterval); MemoryGame.timerInterval=null; }
     if(window.updateStats) window.updateStats();
     if(window.renderBoard) window.renderBoard();
   }
 
-  function startPreview(){
-    MemoryGame.gameState = 'preview';
-    const overlay = document.getElementById('countdown-overlay'); if(!overlay) return;
-    overlay.style.display = 'flex'; overlay.classList.remove('hidden'); overlay.classList.remove('start');
-    const countdowns = [3,2,1]; let step=0;
-    function showNext(){ if(step < countdowns.length){ overlay.textContent = countdowns[step]; step++; setTimeout(showNext,1000); } else { overlay.textContent = 'START!'; overlay.classList.add('start'); setTimeout(()=>{ overlay.style.display='none'; overlay.classList.add('hidden'); MemoryGame.cards.forEach(c=>c.isFlipped=true); if(window.updateStats) window.updateStats(); if(window.renderBoard) window.renderBoard(); setTimeout(()=>{ MemoryGame.cards.forEach(c=>c.isFlipped=false); if(window.updateStats) window.updateStats(); if(window.renderBoard) window.renderBoard(); MemoryGame.seconds=0; MemoryGame.moves=0; MemoryGame.combo=0; MemoryGame.maxCombo=0; MemoryGame.score=0; MemoryGame.gameState='playing'; MemoryGame.gameStarted=true; if(window.startTimer) window.startTimer(); if(window.updateStats) window.updateStats(); }, 3000); },500); } }
-    showNext();
+  function startCountdown(){
+    const overlay = document.getElementById('countdown-overlay');
+    if(!overlay) return;
+
+    if(MemoryGame.timerInterval){
+      clearInterval(MemoryGame.timerInterval);
+      MemoryGame.timerInterval = null;
+    }
+
+    let count = 3;
+    MemoryGame.seconds = 0;
+    MemoryGame.moves = 0;
+    MemoryGame.combo = 0;
+    MemoryGame.maxCombo = 0;
+    MemoryGame.score = 0;
+    MemoryGame.gameStarted = false;
+    MemoryGame.gameState = 'countdown';
+    if(window.updateScore) window.updateScore();
+    if(window.updateStats) window.updateStats();
+
+    overlay.classList.remove('hidden', 'go');
+    overlay.style.display = 'flex';
+    overlay.textContent = count;
+
+    const timer = setInterval(function(){
+      count--;
+      if(count > 0){
+        overlay.textContent = count;
+      } else if(count === 0){
+        overlay.textContent = 'GO!';
+        overlay.classList.add('go');
+      } else {
+        clearInterval(timer);
+        overlay.style.display = 'none';
+        overlay.classList.add('hidden');
+        overlay.classList.remove('go');
+        MemoryGame.gameStarted = true;
+        MemoryGame.gameState = 'playing';
+        if(window.startTimer) window.startTimer();
+        if(window.updateStats) window.updateStats();
+      }
+    }, 1000);
   }
 
   function startGame(difficulty){
@@ -54,19 +89,25 @@
       gameScreenEl.classList.add('animate-fade-in');
       setTimeout(function(){ gameScreenEl.classList.remove('animate-fade-in'); }, 400);
     }
-    initGame(); requestAnimationFrame(()=>{ if(window.renderBoard) window.renderBoard(); });
-    setTimeout(()=>{ if(MemoryGame.currentDifficulty){ if(window.renderBoard) window.renderBoard(); startPreview(); } }, 60);
+    initGame();
+    MemoryGame.score = 0;
+    if(window.updateScore) window.updateScore();
+    requestAnimationFrame(()=>{ if(window.renderBoard) window.renderBoard(); });
+    setTimeout(()=>{ if(MemoryGame.currentDifficulty){ if(window.renderBoard) window.renderBoard(); startCountdown(); } }, 60);
+  }
+
+  function updateScore(){
+    const scoreEl = document.getElementById('score-display') || document.getElementById('score');
+    if(scoreEl) scoreEl.textContent = MemoryGame.score || 0;
   }
 
   function updateStats(){
     document.getElementById('moves').textContent = MemoryGame.moves;
     document.getElementById('matches').textContent = MemoryGame.matchedPairs;
     // display calculated score if available
-    var scoreEl = document.getElementById('score-display');
-    if(scoreEl){
-      var sc = (window.calculateScore ? window.calculateScore() : MemoryGame.score || 0);
-      scoreEl.textContent = sc;
-    }
+    var sc = (window.calculateScore ? window.calculateScore() : MemoryGame.score || 0);
+    MemoryGame.score = sc;
+    updateScore();
     const remaining = MemoryGame.gameState === 'preview' ? MemoryGame.timeLimit : Math.max(0, MemoryGame.timeLimit - MemoryGame.seconds);
     document.getElementById('timer').textContent = (window.formatTime ? window.formatTime(remaining) : (Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0')));
     const timerBar = document.getElementById('timer-bar'); if(timerBar){ const pct = MemoryGame.timeLimit>0 ? (remaining/MemoryGame.timeLimit)*100 : 0; timerBar.style.width = pct + '%'; if(remaining <= 30 && remaining > 0 && MemoryGame.gameState === 'playing') timerBar.classList.add('timer-bar-warning'); else timerBar.classList.remove('timer-bar-warning'); }
@@ -104,7 +145,15 @@
 
   function showGameOverModal(){ MemoryGame.gameState='finished'; document.getElementById('modal-title').textContent = '시간 초과!'; document.getElementById('final-moves').textContent = MemoryGame.moves; document.getElementById('game-over-modal').classList.remove('hidden'); }
 
-  function restartGame(){ document.getElementById('game-over-modal').classList.add('hidden'); document.getElementById('win-modal').classList.add('hidden'); initGame(); requestAnimationFrame(()=>{ if(window.renderBoard) window.renderBoard(); }); }
+  function restartGame(){
+    document.getElementById('game-over-modal').classList.add('hidden');
+    document.getElementById('win-modal').classList.add('hidden');
+    initGame();
+    requestAnimationFrame(function(){
+      if(window.renderBoard) window.renderBoard();
+      if(MemoryGame.currentDifficulty) startCountdown();
+    });
+  }
   function goToMenu(){
     if(MemoryGame.timerInterval){ clearInterval(MemoryGame.timerInterval); MemoryGame.timerInterval=null; }
     var gameScreenEl = document.getElementById('game-screen');
@@ -123,7 +172,7 @@
   function closeWinModal(){ document.getElementById('win-modal').classList.add('hidden'); }
 
   // expose
-  window.startGame = startGame; window.restartGame = restartGame; window.goToMenu = goToMenu; window.closeModal = closeModal; window.closeWinModal = closeWinModal; window.showWinModal = showWinModal; window.showGameOverModal = showGameOverModal; window.playMatchSound = playMatchSound; window.triggerConfetti = triggerConfetti; window.updateStats = updateStats; window.initGame = initGame;
+  window.startGame = startGame; window.restartGame = restartGame; window.goToMenu = goToMenu; window.closeModal = closeModal; window.closeWinModal = closeWinModal; window.showWinModal = showWinModal; window.showGameOverModal = showGameOverModal; window.playMatchSound = playMatchSound; window.triggerConfetti = triggerConfetti; window.updateStats = updateStats; window.updateScore = updateScore; window.startCountdown = startCountdown; window.initGame = initGame;
 
   // UI bindings for elements previously using inline onclick attributes
   function bindUI(){

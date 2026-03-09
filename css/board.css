@@ -1,5 +1,5 @@
 /* Card, grid, card size, front/back */
-.card-container { perspective: 1000px; aspect-ratio: 1 / 1; width:100%; height:100%; max-width:140px; max-height:140px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.card-container { perspective: 1000px; aspect-ratio: 1 / 1; width:100%; height:100%; max-width:none; max-height:none; overflow:hidden; display:flex; align-items:center; justify-content:center; }
 .card { position: relative; transform-style: preserve-3d; transition: transform 0.5s ease; width:100%; height:100%; }
 .card.flipped { transform: rotateY(180deg); }
 .card-face { position:absolute; width:100%; height:100%; backface-visibility: hidden; border-radius:12px; display:flex; align-items:center; justify-content:center; }
@@ -11,20 +11,11 @@
 .card:hover:not(.flipped):not(.matched) { transform: scale(1.05); }
 .card-front img { width:100%; height:100%; object-fit:contain; }
 
-/* Grid gaps: separate column and row gaps so vertical spacing is smaller than horizontal */
-#game-board {
-	column-gap: 16px;
-	row-gap: 8px;
-	grid-auto-rows: 1fr; /* Ensure grid rows scale and don't force fixed heights that cause clipping */
-}
-
-@media (max-width: 1180px) {
-	.card-container { max-width:120px; max-height:120px; }
-}
+/* Let the grid use all available board area and keep cards square. */
+#game-board { grid-auto-rows: 1fr; }
 
 @media (max-height: 700px) {
-	.card-container { max-width:90px; max-height:90px; }
-	#game-board { column-gap: 12px; row-gap: 6px; }
+	#game-board { gap: 8px; }
 }
 
 /* Hover scale for interactive cards (do not affect flipped or matched states) */

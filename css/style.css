@@ -1,6 +1,13 @@
 /* Global layout, body, header, UI buttons */
 * { box-sizing: border-box; }
-body { margin: 0; font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  display: flex;
+  flex-direction: column;
+}
+#app { flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
 .hidden { display: none !important; }
 .screen { width:100%; height:100%; transition: opacity 260ms ease; }
 .app-bg { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height:100vh; }
@@ -31,20 +38,53 @@ body { margin: 0; font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', R
   .theme-select-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-.stats-container { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:12px 0; }
+.stats-container { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:4px 0 8px; }
 .stat { background: rgba(255,255,255,0.06); backdrop-filter: blur(6px); padding:10px 12px; border-radius:12px; text-align:center; }
 .stat-value { font-weight:800; color:#fcd34d; font-size:1.2rem; }
 .stat-label { font-size:0.8rem; color:#c4b5fd; }
 .timer-bar-track { width:160px; height:6px; background: rgba(255,255,255,0.15); border-radius:999px; overflow:hidden; margin-top:6px; }
 #timer-bar { height:100%; background:#06b6d4; width:100%; transition:width 0.4s ease, background 0.2s ease; }
 
-.game-board-wrapper { display:flex; justify-content:center; align-items:center; width:100%; height: calc(100vh - 260px); max-height:900px; overflow:hidden; }
-#game-board { display:grid; place-content:center; align-content:center; justify-content:center; width:100%; height:100%; max-width:700px; margin:auto; }
-.game-board-wrapper { padding: 8px; }
+#game-screen { height: 100vh; justify-content: flex-start; gap: 8px; padding: 10px 12px; }
+.game-board-wrapper {
+  flex: 1;
+  min-height: 0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  height: auto;
+  overflow:hidden;
+  padding: 4px 0;
+}
+#game-board {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  width: min(90vw, 1100px);
+  height: min(80vh, calc(100vh - 220px));
+  margin: 0 auto;
+  align-content: stretch;
+  justify-content: stretch;
+}
 .game-board-wrapper.scrollable { overflow:auto; }
-#game-board { max-width: min(90vw, 1100px); }
 .game-board-wrapper.scrollable { -webkit-overflow-scrolling: touch; }
 .timer-bar-track { width: min(40vw, 200px); }
+
+#countdown-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  font-size: clamp(3rem, 12vw, 7rem);
+  font-weight: 800;
+  z-index: 120;
+}
+
+#countdown-overlay.go { color: #fcd34d; }
 
 .modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index:60; }
 .modal.hidden { display:none; }
@@ -63,5 +103,6 @@ body { margin: 0; font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', R
 .bottom-controls { margin-bottom:12px; }
 
 @media (max-width:900px) {
-  .game-board-wrapper { max-width: 900px; margin: auto; }
+  #game-screen { padding: 8px; }
+  #game-board { width: 94vw; height: min(82vh, calc(100vh - 210px)); }
 }
